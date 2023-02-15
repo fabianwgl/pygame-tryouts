@@ -20,16 +20,17 @@ bg1_image = pygame.image.load('background_layer_1.png')
 bg2_image = pygame.image.load('background_layer_2.png')
 bg3_image = pygame.image.load('background_layer_3.png')
 
-#   matrix for displaying tiles
-game_map = [['0','0','0','0','0','0','0','0','0','0'],
-            ['0','0','0','0','0','0','0','0','0','0'],
-            ['0','0','0','0','0','0','0','0','0','0'],
-            ['0','0','0','0','0','0','0','0','0','0'],
-            ['0','0','0','0','0','0','2','0','0','0'],
-            ['0','0','0','0','0','0','0','0','0','0'],
-            ['0','0','0','0','0','0','0','0','0','0'],
-            ['1','1','1','1','1','1','1','1','1','1','1','1','1','1',]]
+def load_map(path):
+    f = open(path+".txt", "r")
+    data = f.read()
+    f.close()
+    data = data.split('\n')
+    game_map = []
+    for row in data:
+        game_map.append(list(row))
+    return game_map
 
+game_map = load_map('map')
 
 def collision_test(rect, tiles):
     hit_list = []
@@ -68,7 +69,10 @@ moving_left = False
 
 player_location = [50, 50]
 player_y_momentum = 0
-velocity = 0.2
+player_is_jumping = False
+velocity = 0.17
+
+true_scroll = [0,0]
 
 TILE_SIZE = ground_image.get_width()
 
@@ -90,20 +94,28 @@ while run:
     # paint background
     display.fill((146,244,255))
 
+    true_scroll[0] += (player_rect.x-true_scroll[0]-450)/20
+    true_scroll[1] += (player_rect.y-true_scroll[1]-350)/20
+
+    scroll = true_scroll.copy()
+    scroll[0] = int(scroll[0])
+    scroll[1] = int(scroll[1])
+
     display.blit(image, (0, 0))
     display.blit(image2, (0, 0))    
     display.blit(image3, (0, 0))
 
     tile_rects = []
 
+    #   display tiles and things and 
     y = 0
     for row in game_map:
         x = 0
         for tile in row:
             if tile == '1':
-                display.blit(ground_image, (x * TILE_SIZE, y * TILE_SIZE))
+                display.blit(ground_image, (x * TILE_SIZE-scroll[0], y * TILE_SIZE-scroll[1]))
             if tile == '2':
-                display.blit(shopp, (x * TILE_SIZE, y * TILE_SIZE))
+                display.blit(shopp, (x * TILE_SIZE-scroll[0], y * TILE_SIZE-scroll[1]))
             if tile not in ['0', '2']:
                 tile_rects.append(pygame.Rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE))
             x += 1
@@ -125,10 +137,11 @@ while run:
 
     player_rect, collisions = move(player_rect, player_movement, tile_rects)
     if collisions['bottom']:
+        player_is_jumping = False
         player_y_momentum = 0
 
     #   draw player sprite
-    display.blit(player_image, (player_rect.x, player_rect.y))
+    display.blit(player_image, (player_rect.x-scroll[0], player_rect.y-scroll[1]))
 
 
     #   event handler
@@ -142,7 +155,8 @@ while run:
                 moving_right = True
             if event.key == K_LEFT:
                 moving_left = True
-            if event.key == K_UP:
+            if event.key == K_UP and not player_is_jumping:
+                player_is_jumping = True
                 player_y_momentum = -5
         if event.type == KEYUP:
             if event.key == K_RIGHT:
