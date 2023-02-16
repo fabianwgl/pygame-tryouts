@@ -25,11 +25,11 @@ bg1_image = pygame.image.load('clouds/1.png')
 bg2_image = pygame.image.load('clouds/6.png')
 bg3_image = pygame.image.load('clouds/2.png')
 bg4_image = pygame.image.load('clouds/4.png')
+bg4_image.set_alpha(200)
 bg5_image = pygame.image.load('clouds/5.png')
 
 single_cloud_image = pygame.image.load('clouds/3.png')
-
-print(pygame.font.get_fonts())
+single_cloud_image.set_alpha(230)
 
 def load_map(path):
     f = open(path+".txt", "r")
@@ -125,12 +125,12 @@ true_scroll = [0,0]
 
 TILE_SIZE = ground_image.get_width()
 
-player_rect = pygame.Rect(400, 300, 64, 45)
+player_rect = pygame.Rect(300, 300, 64, 45)
 
 print("TILE SIZE "+str(TILE_SIZE))
 
 FACTOR_SCALE = 1.6
-PLAYER_MOVEMENT_SPEED = 8
+PLAYER_MOVEMENT_SPEED = 5
 
 #   draw background
 image = pygame.transform.scale(bg1_image, (bg1_image.get_width()*FACTOR_SCALE, bg1_image.get_height()*FACTOR_SCALE))
@@ -139,20 +139,22 @@ image3 = pygame.transform.scale(bg3_image, (bg3_image.get_width()*FACTOR_SCALE, 
 image5 = pygame.transform.scale(bg5_image, (bg5_image.get_width()*FACTOR_SCALE, bg5_image.get_height()*FACTOR_SCALE))
 
 image4 = pygame.transform.scale(bg4_image, (bg4_image.get_width()*FACTOR_SCALE, bg4_image.get_height()*FACTOR_SCALE))
-image4_x = -50
+image4_x = -20
 image4_return = False
 
-cloud = pygame.transform.scale(single_cloud_image, (single_cloud_image.get_width() * 0.5, single_cloud_image.get_height() * 0.5))
-cloud_x = 450
+cloud = pygame.transform.scale(single_cloud_image, (single_cloud_image.get_width()*2, single_cloud_image.get_height()*2))
+cloud_x = 0
 
 mixer.music.play()
 run = True
+img3_x = 0
+main_text = "Si tengo apetito es solo..."
 while run:
     # paint background
     display.fill((146,244,255))
 
     #   scroll and camera offset
-    true_scroll[0] += (player_rect.x-true_scroll[0]-400)/20
+    true_scroll[0] += (player_rect.x-true_scroll[0]-300)/20
     true_scroll[1] += (player_rect.y-true_scroll[1]-390)/20
     #   purify scroll integers 
     scroll = true_scroll.copy()
@@ -161,23 +163,42 @@ while run:
 
     #   draw background
     display.blit(image, (0, 0))
-    display.blit(image2, (0, 0))    
-    display.blit(image3, (0, 0))
-    display.blit(image5, (0, 0))
+    display.blit(image2, (0, 0))
+    display.blit(image3, (img3_x, 0))
+    
+    main_font = pygame.font.SysFont('Verdana', 30)
+    main_text_render = main_font.render(main_text, True, (0,0,0))
+
+    display.blit(main_text_render, (200, 100))
+    display.blit(image5, (+img3_x, 0))
 
     #   lullaby clouds animation
-    display.blit(cloud, (cloud_x, 100))
+    display.blit(cloud, (cloud_x, -50))
     display.blit(image4, (image4_x, 0))
     if not image4_return:
         image4_x += 0.03
-        cloud_x += 0.03
+        cloud_x += 0.1
         if image4_x > -1:
             image4_return = True
     else:
         image4_x -= 0.03
-        cloud_x -= 0.03
+        cloud_x -= 0.1
         if image4_x < -50:
             image4_return = False
+
+
+    #   text poem logic
+    if player_rect.x < 500:
+        main_text = "Si tengo apetito es solo..."
+        # letter = list(text).pop()
+        # main_text += main_text + list(text).pop()
+    if player_rect.x > 500 and player_rect.x < 1000:
+        main_text = "...de la tierra y de las piedras"
+    if player_rect.x > 1000 and player_rect.x < 1500:
+        main_text = "Almuerzo siempre con aire..."
+    if player_rect.x > 1500 and player_rect.x < 2000:
+        main_text = "...tierra, carbones y piedras"
+
 
 
     tile_rects = []
@@ -219,6 +240,7 @@ while run:
 
     if player_movement[0] > 0:
         player_action, player_frame = change_action(player_action, player_frame, 'walk')
+        img3_x += 0.01
         player_flip = False
     if player_movement[0] < 0:
         player_action, player_frame = change_action(player_action, player_frame, 'walk')
@@ -235,6 +257,7 @@ while run:
 
 
     player_rect, collisions = move(player_rect, player_movement, tile_rects)
+    # print("player X "+str(player_rect.x))
     if collisions['bottom']:
         player_is_jumping = False
         player_y_momentum = 0
