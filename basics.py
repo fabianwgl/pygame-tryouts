@@ -3,7 +3,7 @@ import pygame
 from pygame.locals import *
 pygame.init()
 
-pygame.display.set_caption('potigame')
+pygame.display.set_caption('game')
 WINDOW_SIZE = (960, 540)
 screen = pygame.display.set_mode(WINDOW_SIZE, 0, 32)
 display = pygame.Surface(WINDOW_SIZE)
@@ -100,8 +100,9 @@ while run:
     scroll = true_scroll.copy()
     scroll[0] = int(scroll[0])
     scroll[1] = int(scroll[1])
+    print(scroll[0], scroll[1])
 
-    display.blit(image, (0, 0))
+    display.blit(image, (scroll[0], scroll[1]))
     display.blit(image2, (0, 0))    
     display.blit(image3, (0, 0))
 
