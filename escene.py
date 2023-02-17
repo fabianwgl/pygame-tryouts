@@ -11,7 +11,7 @@ mixer.music.load('lloyd.wav')
 mixer.music.set_volume(0.2)
 
 pygame.display.set_caption('capi the game')
-WINDOW_SIZE = (900, 500)
+WINDOW_SIZE = (800, 400)
 screen = pygame.display.set_mode(WINDOW_SIZE, 0, 32)
 display = pygame.Surface(WINDOW_SIZE)
 
@@ -100,9 +100,8 @@ def change_action(action_var, frame, new_value):
         frame = 0
     return action_var,frame
 
-animation_database = {}
-
 #   load animation database
+animation_database = {}
 animation_database['walk'] = load_animation('capy/walk', [4,4,4,4,4,4,4,4])
 animation_database['sitting-idle'] = load_animation('capy/sitting-idle', [4,4,4,4,4,4,4,4])
 animation_database['munch'] = load_animation('capy/munch', [4,4,4,4,4,4,4,4])
@@ -116,7 +115,7 @@ moving_left = False
 moving_up = False
 moving_down = False
 
-player_location = [50, 50]
+player_location = [20, 20]
 player_y_momentum = 0
 player_is_jumping = False
 velocity = 0.2
@@ -124,12 +123,14 @@ velocity = 0.2
 true_scroll = [0,0]
 
 TILE_SIZE = ground_image.get_width()
+TILE_SIZE_SCALE = TILE_SIZE*0.5
+ground_image_resized = pygame.transform.scale(ground_image,(TILE_SIZE_SCALE, TILE_SIZE_SCALE))
 
-player_rect = pygame.Rect(300, 300, 64, 45)
+player_rect = pygame.Rect(200, 200, 64, 45)
 
 print("TILE SIZE "+str(TILE_SIZE))
 
-FACTOR_SCALE = 1.6
+FACTOR_SCALE = 1.4
 PLAYER_MOVEMENT_SPEED = 5
 
 #   draw background
@@ -146,16 +147,23 @@ cloud = pygame.transform.scale(single_cloud_image, (single_cloud_image.get_width
 cloud_x = 0
 
 mixer.music.play()
-run = True
 img3_x = 0
+clouds_x = 0
+clouds_y = 0
 main_text = "Si tengo apetito es solo..."
+main_text_french = "Si j’ai du goût, ce n’est guère..."
+
+main_font_french = pygame.font.SysFont('Verdana', 50)
+main_font = pygame.font.SysFont('Verdana', 20)
+
+run = True
 while run:
     # paint background
     display.fill((146,244,255))
 
     #   scroll and camera offset
-    true_scroll[0] += (player_rect.x-true_scroll[0]-300)/20
-    true_scroll[1] += (player_rect.y-true_scroll[1]-390)/20
+    true_scroll[0] += (player_rect.x-true_scroll[0]-300)/5
+    true_scroll[1] += (player_rect.y-true_scroll[1]-290)/5
     #   purify scroll integers 
     scroll = true_scroll.copy()
     scroll[0] = int(scroll[0])
@@ -164,25 +172,31 @@ while run:
     #   draw background
     display.blit(image, (0, 0))
     display.blit(image2, (0, 0))
-    display.blit(image3, (img3_x, 0))
+    display.blit(image3, (clouds_x, clouds_y))
     
-    main_font = pygame.font.SysFont('Verdana', 30)
+    #   create and render background poem
+    main_text_french_render = main_font_french.render(main_text_french, True, (255,0,0))
     main_text_render = main_font.render(main_text, True, (0,0,0))
-
+    main_text_render.set_alpha(125)
+    
+    # display.blit(main_text_french_render, (100, 100))
     display.blit(main_text_render, (200, 100))
-    display.blit(image5, (+img3_x, 0))
+
+
+    display.blit(image5, (clouds_x, clouds_y))
 
     #   lullaby clouds animation
-    display.blit(cloud, (cloud_x, -50))
-    display.blit(image4, (image4_x, 0))
+    display.blit(cloud, (clouds_x, clouds_y))
+    display.blit(image4, (clouds_x*3, clouds_y*3))
+    
     if not image4_return:
-        image4_x += 0.03
-        cloud_x += 0.1
+        image4_x += 1
+        clouds_x += 0.03
         if image4_x > -1:
             image4_return = True
     else:
-        image4_x -= 0.03
-        cloud_x -= 0.1
+        image4_x -= 1
+        clouds_x -= 0.03
         if image4_x < -50:
             image4_return = False
 
@@ -209,11 +223,11 @@ while run:
         x = 0
         for tile in row:
             if tile == '1':
-                display.blit(ground_image, (x * TILE_SIZE-scroll[0], y * TILE_SIZE-scroll[1]))
+                display.blit(ground_image_resized, (x * TILE_SIZE_SCALE-scroll[0], y * TILE_SIZE_SCALE-scroll[1]))
             if tile == '2':
                 display.blit(shopp, (x * TILE_SIZE-scroll[0], y * TILE_SIZE-scroll[1]))
             if tile not in ['0', '2']:
-                tile_rects.append(pygame.Rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE))
+                tile_rects.append(pygame.Rect(x * TILE_SIZE_SCALE, y * TILE_SIZE_SCALE, TILE_SIZE_SCALE, TILE_SIZE_SCALE))
             x += 1
         y += 1
 
@@ -221,14 +235,18 @@ while run:
 
     player_movement = [0,0]
     if moving_right and not moving_down:
+        # clouds_x += 0.03
         player_movement[0] += PLAYER_MOVEMENT_SPEED
     if moving_left and not moving_down:
+        # clouds_x -= 0.03
         player_movement[0] -= PLAYER_MOVEMENT_SPEED
-    # if moving_up:
+    if moving_up:
+        clouds_y += 0.03
         # print('moving up')
         # player_movement[1] += PLAYER_MOVEMENT_SPEED
-    # if moving_down:
+    if moving_down:
         # print('moving down')
+        clouds_y -= 0.03
         # player_movement[1] -= PLAYER_MOVEMENT_SPEED
         
 
